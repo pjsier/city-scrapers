@@ -12,7 +12,19 @@ class ChiLowIncomeHousingTrustFundSpider(CityScrapersSpider):
     agency = 'Chicago Low-Income Housing Trust Fund'
     timezone = 'America/Chicago'
     allowed_domains = ['www.chicagotrustfund.org']
-    start_urls = ['http://www.chicagotrustfund.org/about-us/upcomingevents/']
+    # start_urls = ['http://www.chicagotrustfund.org/about-us/upcomingevents/']
+
+    @property
+    def start_urls(self):
+        urls = []
+        for year in range(2017, 2020):
+            for month in range(1, 13):
+                dt = datetime.strptime(' '.join([str(month), str(year)]), '%m %Y')
+                urls.append(
+                    ('http://www.chicagotrustfund.org/about-us/upcomingevents/?month={}&yr={}'
+                     ).format(dt.strftime('%B')[:3].lower(), year)
+                )
+        return urls
 
     def parse(self, response):
         """
@@ -36,8 +48,8 @@ class ChiLowIncomeHousingTrustFundSpider(CityScrapersSpider):
             yield req
 
         # Only go to the next page once, so if query parameters are set, exit
-        if '?month' not in response.url:
-            yield self._parse_next(response)
+        # if '?month' not in response.url:
+        #     yield self._parse_next(response)
 
     def _parse_next(self, response):
         """

@@ -1,6 +1,7 @@
 import re
 from datetime import datetime
 
+import scrapy
 from city_scrapers_core.constants import BOARD, COMMITTEE
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
@@ -35,6 +36,43 @@ class ChiPoliceRetirementSpider(CityScrapersSpider):
                 location=self._parse_location(),
                 source=self._parse_source(response),
                 links=self._parse_links(date_item, response)
+            )
+
+            meeting["status"] = self._get_status(meeting)
+            meeting["id"] = self._get_id(meeting)
+
+            yield meeting
+
+        yield scrapy.Request(
+            'http://www.chipabf.org/ChicagoPolicePension/SubFolders/ArchiveMinites.html',
+            callback=self._parse_past
+        )
+
+    def _parse_past(self, response):
+        for minutes in response.css('.contentleft a, .contentmiddle a'):
+            date_str = re.search(
+                r'[a-z]{3,10}\s+\d{1,2}', minutes.xpath('./text()').extract_first(), flags=re.I
+            )
+            if not date_str:
+                continue
+            year_str = re.search(r'(?<=/)\d{4}(?=/)', minutes.attrib['href']).group()
+            start = datetime.strptime(
+                ' '.join([date_str.group(), year_str, '9AM']), '%B %d %Y %I%p'
+            )
+            meeting = Meeting(
+                title='Retirement Board',
+                description='',
+                classification=BOARD,
+                start=start,
+                end=None,
+                time_notes="",
+                all_day=False,
+                location=self._parse_location(),
+                source=self._parse_source(response),
+                links=[{
+                    'href': response.urljoin(minutes.attrib['href']),
+                    'title': 'Minutes'
+                }]
             )
 
             meeting["status"] = self._get_status(meeting)

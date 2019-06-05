@@ -11,6 +11,10 @@ class ChiCityCouncilSpider(LegistarSpider):
     start_urls = ['https://chicago.legistar.com/Calendar.aspx']
     link_types = []
 
+    def parse(self, response):
+        events = self._call_legistar(since=2000)
+        return self.parse_legistar(events)
+
     def parse_legistar(self, events):
         """
         `parse_legistar` should always `yield` Meeting items.

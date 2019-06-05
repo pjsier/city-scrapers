@@ -20,15 +20,18 @@ class ChiPubHealthSpider(CityScrapersSpider):
         format, as well as known variants, in hopes DPH sticks to one of their
         conventions and this scraper does not need to be updated annually.
         """
-        standard_url = 'https://www.chicago.gov/city/en/depts/cdph/supp_info/boh/{}-board-of-health-meetings.html'  # noqa
-        url_variant_1 = 'https://www.chicago.gov/city/en/depts/cdph/supp_info/boh/{}-board-of-health.html'  # noqa
+        urls = []
+        for y in range(2013, 2020):
+            urls.extend([
+                (
+                    'https://www.chicago.gov/city/en/depts/cdph/supp_info/boh/{}-board-of-health-meetings.html'  # noqa
+                ).format(y),
+                (
+                    'https://www.chicago.gov/city/en/depts/cdph/supp_info/boh/{}-board-of-health.html'  # noqa
+                ).format(y)
+            ])
 
-        current_year = datetime.now().year
-
-        return [
-            standard_url.format(current_year),
-            url_variant_1.format(current_year),
-        ]
+        return urls
 
     def parse(self, response):
         """
@@ -60,11 +63,14 @@ class ChiPubHealthSpider(CityScrapersSpider):
             if not item.css('*::text').extract_first().strip():
                 continue
 
+            start = self._parse_start(item)
+            if not start:
+                continue
             meeting = Meeting(
                 title=title,
                 description='',
                 classification=BOARD,
-                start=self._parse_start(item),
+                start=start,
                 end=None,
                 time_notes='',
                 all_day=False,
@@ -95,13 +101,18 @@ class ChiPubHealthSpider(CityScrapersSpider):
             date_match = re.search(r'(?P<month>[a-zA-Z]+)(?P<day>\d+)', date_text)
             date_text = '{} {}'.format(date_match.group('month'), date_match.group('day'))
         # Extract date formatted like "January 12"
-        return datetime.strptime(date_text, '%B %d')
+        try:
+            return datetime.strptime(date_text, '%B %d')
+        except Exception:
+            return
 
     def _parse_start(self, item):
         """
         Parse the meeting date and set start time to 9am.
         """
         datetime_obj = self._parse_date(item)
+        if not datetime_obj:
+            return
         return datetime(self.year, datetime_obj.month, datetime_obj.day, 9)
 
     def _parse_links(self, item, response):

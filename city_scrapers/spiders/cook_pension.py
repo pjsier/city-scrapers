@@ -11,11 +11,18 @@ class CookPensionSpider(CityScrapersSpider):
     agency = "Cook County Pension Fund"
     timezone = "America/Chicago"
     allowed_domains = ["www.cookcountypension.com"]
-    start_urls = ["https://www.cookcountypension.com/agendaminutes/"]
+    # start_urls = ["https://www.cookcountypension.com/agendaminutes/"]
     location = {
         "name": "Cook County Pension Fund Office",
         "address": "70 W Madison St, Suite 1925, Chicago, IL 60602",
     }
+
+    @property
+    def start_urls(self):
+        urls = []
+        for y in range(2009, 2020):
+            urls.append('https://www.cookcountypension.com/agendaminutes/?Year={}'.format(y))
+        return urls
 
     def parse(self, response):
         """

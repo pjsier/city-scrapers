@@ -12,6 +12,10 @@ class CookForestPreservesSpider(LegistarSpider):
     allowed_domains = ['fpdcc.legistar.com']
     start_urls = ['https://fpdcc.legistar.com/Calendar.aspx']
 
+    def parse(self, response):
+        events = self._call_legistar(since=2000)
+        return self.parse_legistar(events)
+
     def parse_legistar(self, events):
         for event, _ in events:
             start = self.legistar_start(event)

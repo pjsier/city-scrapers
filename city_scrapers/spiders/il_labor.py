@@ -1,3 +1,7 @@
+import re
+from datetime import datetime
+
+import scrapy
 from city_scrapers_core.constants import BOARD
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
@@ -37,6 +41,48 @@ class IlLaborSpider(CityScrapersSpider):
                 all_day=False,
                 location=self._parse_location(item),
                 links=self._parse_links(item, response),
+                source=response.url,
+            )
+            meeting['id'] = self._get_id(meeting)
+            meeting['status'] = self._get_status(meeting)
+            yield meeting
+        for url in [
+            'https://www2.illinois.gov/ilrb/meetings/stateminutes/Pages/default.aspx',
+            'https://www2.illinois.gov/ilrb/meetings/localminutes/Pages/default.aspx',
+            'https://www2.illinois.gov/ilrb/meetings/jointminutes/Pages/default.aspx'
+        ]:
+            yield scrapy.Request(url, callback=self._parse_past)
+
+    def _parse_past(self, response):
+        for item in response.css('.link-item a'):
+            item_str = item.xpath('./text()').extract_first().strip()
+            try:
+                start = datetime.strptime(item_str.split(' ')[0], '%m-%d-%Y')
+            except ValueError:
+                start = datetime.strptime(item_str.split(' ')[0], '%m-%d-%y')
+            title = re.search(r'(?<=\d\s)[a-z ]+(?=\sM)', item_str, flags=re.I).group()
+            if 'state' in title.lower():
+                start = start.replace(hour=11)
+            elif 'joint' in title.lower():
+                start = start.replace(hour=9, minute=30)
+            elif 'local' in title.lower():
+                start = start.replace(hour=10)
+            meeting = Meeting(
+                title=title + ' Meeting',
+                description='',
+                classification=BOARD,
+                start=start,
+                end=None,
+                time_notes='',
+                all_day=False,
+                location={
+                    'name': '',
+                    'address': '160 N LaSalle St Chicago, IL 60601'
+                },
+                links=[{
+                    'title': 'Minutes',
+                    'href': item.attrib['href']
+                }],
                 source=response.url,
             )
             meeting['id'] = self._get_id(meeting)

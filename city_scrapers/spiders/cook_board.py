@@ -12,6 +12,10 @@ class CookBoardSpider(LegistarSpider):
     allowed_domains = ['cook-county.legistar.com']
     start_urls = ['https://www.cook-county.legistar.com/Calendar.aspx']
 
+    def parse(self, response):
+        events = self._call_legistar(since=2000)
+        return self.parse_legistar(events)
+
     def parse_legistar(self, events):
         for event, _ in events:
             title = self._parse_title(event)

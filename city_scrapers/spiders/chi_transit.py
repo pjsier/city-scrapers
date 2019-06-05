@@ -12,7 +12,18 @@ class ChiTransitSpider(CityScrapersSpider):
     timezone = 'America/Chicago'
     allowed_domains = ['www.transitchicago.com']
     base_url = 'http://www.transitchicago.com'
-    start_urls = ['https://www.transitchicago.com/board/notices-agendas-minutes/']
+    # start_urls = ['https://www.transitchicago.com/board/notices-agendas-minutes/']
+
+    @property
+    def start_urls(self):
+        urls = []
+        for y in range(2017, 2020):
+            urls.extend([
+                'https://www.transitchicago.com/board/notices-agendas-minutes/?Year={}'.format(y),
+                ('https://www.transitchicago.com/board/notices-agendas-minutes/?Year={}&pg=2'
+                 ).format(y),
+            ])
+        return urls
 
     def parse(self, response):
         """
@@ -74,6 +85,10 @@ class ChiTransitSpider(CityScrapersSpider):
                 'name': '',
                 'address': re.sub(r'[\s\n]+', ' ', loc).strip(),
             }
+        return {
+            'name': 'Chicago Transit Authority 2nd Floor Boardroom',
+            'address': '567 West Lake Street Chicago, IL 60661',
+        }
 
     def _parse_title(self, item):
         """Parse or generate meeting title."""

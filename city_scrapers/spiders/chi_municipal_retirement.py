@@ -1,6 +1,7 @@
 import re
 from datetime import datetime, time
 
+import scrapy
 from city_scrapers_core.constants import BOARD, COMMITTEE
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
@@ -18,6 +19,14 @@ class ChiMunicipalRetirementSpider(CityScrapersSpider):
     }
 
     def parse(self, response):
+        for y in range(2010, 2020):
+            yield scrapy.FormRequest(
+                'https://www.meabf.org/retirement-board/minutes',
+                formdata={'year_ended': str(y)},
+                callback=self.parse_meetings,
+            )
+
+    def parse_meetings(self, response):
         """
         `parse` should always `yield` Meeting items.
 

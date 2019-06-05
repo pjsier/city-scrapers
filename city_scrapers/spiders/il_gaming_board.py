@@ -1,6 +1,7 @@
 import re
 from datetime import datetime, time
 
+import scrapy
 from city_scrapers_core.constants import BOARD
 from city_scrapers_core.items import Meeting
 from city_scrapers_core.spiders import CityScrapersSpider
@@ -18,6 +19,23 @@ class IlGamingBoardSpider(CityScrapersSpider):
     }
 
     def parse(self, response):
+        view_dict = {}
+        for view_input in response.css('input[name*="__"]'):
+            view_dict[view_input.attrib['name']] = view_input.attrib['value']
+        for y in range(1990, 2020):
+            yield scrapy.FormRequest(
+                'http://www.igb.illinois.gov/MeetingsMinutes.aspx',
+                formdata={
+                    **view_dict,
+                    'ctl00$MainPlaceHolder$YearsDropDownList': str(y),
+                    'ctl00$MainPlaceHolder$MeetingButtonGo.x': '22',
+                    'ctl00$MainPlaceHolder$MeetingButtonGo.y': '7',
+                    'ctl00$MainPlaceHolder$ComplaintDatesList': '-1',
+                },
+                callback=self.parse_meetings
+            )
+
+    def parse_meetings(self, response):
         """
         `parse` should always `yield` Meeting items.
 

@@ -17,7 +17,7 @@ class ChiBuildingsSpider(CityScrapersSpider):
     start_urls = [
         '{}&start={}&end={}'.format(
             base_url,
-            (datetime.now() - timedelta(days=60)).strftime('%Y-%m-%d'),
+            (datetime.now() - timedelta(days=7300)).strftime('%Y-%m-%d'),
             (datetime.now() + timedelta(days=60)).strftime('%Y-%m-%d'),
         )
     ]

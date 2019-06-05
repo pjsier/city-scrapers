@@ -11,6 +11,10 @@ class CookWaterSpider(LegistarSpider):
     start_urls = ['https://mwrd.legistar.com']
     address = '100 East Erie Street Chicago, IL 60611'
 
+    def parse(self, response):
+        events = self._call_legistar(since=2000)
+        return self.parse_legistar(events)
+
     def parse_legistar(self, events):
         for event, _ in events:
             title = self._parse_title(event)

@@ -20,7 +20,7 @@ class CookLandbankSpider(CityScrapersSpider):
     Set 90 day time horizon
     ie, will poll all dates 45 days before and after today for events.
     """
-    time_horizon = 45
+    time_horizon = 365
     custom_settings = {
         'DOWNLOAD_DELAY': 1,
         'CONCURRENT_REQUESTS_PER_UP': 1,

@@ -10,11 +10,18 @@ class ChiLaborRetirementFundSpider(CityScrapersSpider):
     agency = "Laborers' & Retirement Board Employees' Annuity & Benefit Fund"
     timezone = "America/Chicago"
     allowed_domains = ["www.labfchicago.org"]
-    start_urls = ["http://www.labfchicago.org/agendas-minutes"]
+    # start_urls = ["http://www.labfchicago.org/agendas-minutes"]
     location = {
         "address": "321 N Clark St, Chicago, IL",
         "name": "Fund Office",
     }
+
+    @property
+    def start_urls(self):
+        urls = []
+        for y in range(2017, 2020):
+            urls.append('http://www.labfchicago.org/agendas-minutes/?F_All=y&year={}'.format(y))
+        return urls
 
     def parse(self, response):
         """

@@ -22,7 +22,7 @@ class ChiFireBenefitFundSpider(CityScrapersSpider):
         needs.
         """
         link_list = self._parse_link_list(response)
-        active_tab = response.css(".tab-pane.active .row")
+        active_tab = response.css(".tab-pane .row")
 
         for idx, col in enumerate(active_tab.css(".col-sm-2:nth-child(2), .col-sm-2:nth-child(3)")):
             # Board meetings are in the first column, committee meetings are in the second
@@ -79,12 +79,15 @@ class ChiFireBenefitFundSpider(CityScrapersSpider):
 
     def _parse_start(self, date_str):
         """Parse start datetime as a naive datetime object."""
-        return datetime.strptime(date_str.strip(), "%B %d, %Y")
+        date_str = re.sub(r'(?<=\d)[a-z]+', '', date_str.strip())
+        date_str = date_str.replace(',', ' ')
+        date_str = re.sub(r's\+', ' ', date_str).strip()
+        return datetime.strptime(date_str, "%B %d %Y")
 
     def _parse_link_list(self, response):
         """Compile a list of all links to documents on the page."""
         links = []
-        for link in response.css(".tab-pane.active a"):
+        for link in response.css(".tab-pane a"):
             # Remove "(Month)" at end of link title
             link_text = re.sub(r"\(.*\)", "", " ".join(link.css("*::text").extract())).strip()
             links.append({

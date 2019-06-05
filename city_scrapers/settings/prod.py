@@ -10,7 +10,7 @@ ITEM_PIPELINES = {
 }
 
 SPIDER_MIDDLEWARES = {
-    "city_scrapers.middleware.CityScrapersWaybackMiddleware": 500,
+    # "city_scrapers.middleware.CityScrapersWaybackMiddleware": 500,
 }
 
 EXTENSIONS = {
